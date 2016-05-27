@@ -1,0 +1,78 @@
+
+
+#Thinking Asynchronously
+
+I just decided to brush up on my core Node.js skills. Simple servers, reading streams, pipes etc. This quickly leads to the problem of asynchronicity. In the spirit of deepening my understanding of async and trying to relate my experience and how I though about it, I submit the following...
+
+
+When multiple asynchronous operations are being carried out at the same time, they won't always return in the same order in which they began. Often, we need to wait for all of these operations to complete, and then deal with their returns in the original order. I found counting is one way to accomplish this.
+
+Lets frame our steps in an easy to understand story:
+
+Imagine a theme park. All visitors enter in a line, the visitors go enjoy the theme park for as long as they need to, but no visitors can leave until they are all done, and they must exit in the same order they entered.
+
+How can this be accomplished?
+
+First, we need a way to order our visitors.
+  Let's give them a number.
+
+Next we need a way to know when all visitors have finished in the park.
+  Here, we can start by taking a total count of all visitors. As they finish, they can tell us they're done and we can decrement our count.
+  When we have a visitor count of 0, we know everybody can leave.
+
+Finally, we need to return them in the same order they came in. We have visitors, with numbers. *hint hint* (Sounds like array values)
+
+============================
+CODE
+
+Down here, our http.get functions are our visitors, and when they all return from having fun in the park we can return them in line.
+
+`
+var fs = require('fs');
+var http = require('http');
+
+//args to pass for http.get calls
+var args = [/* path1, path2, etc */];
+
+//results array will serve as our line
+var results = [];
+
+//total count of visitors
+var count = args.length;
+
+//in our arguments, we must make sure to pass a count
+//below when our http.get function runs, it will be passed the index from the args array
+//this is how we assign each visitor their space in the results line
+function get(path, i) {
+  //http get to specific path
+  http.get(path, function(res) {
+    var data = '';
+    res.setEncoding('utf8');
+    //catch data chunks
+    res.on('data', function (chunk) {
+      data += chunk;
+    });
+    //in this particular example, http.get responses have an 'end' event.
+    //when this is detected, we know our visitor is done in the park
+    res.on('end', function() {
+      //we will put the visitor into the results line
+      results[i] = data;
+      // and decrement our count of visitors in the park
+      count--;
+      //if all visitors are concluded
+      if(count === 0) {
+        //output our results
+        console.log(results.join('\n'));
+      }
+    });
+  }).on('error', function(e) {
+    console.log("got error message: " + e.message);
+  });
+}
+
+args.map(function(path, i) {
+  get(path, i);
+});
+
+
+`
