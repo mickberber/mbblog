@@ -1,0 +1,66 @@
+let const var, I do declare… (part 2 of 3)
+[or, Getting ES6-ey with it 2]
+For my entire JavaScript life, I’ve only know the safety and warmth of var. Now we have new additions(let, const) in the language to declare our variables, and the scoping rules of these(let, const, [and class]) are slightly different. I think one of the most interesting things about the way these statements behave is that they are hoisted, but they throw a Reference Error if they are accessed before they are assigned a value instead of the traditional undefined. The difference can be seen below:
+
+console.log(x); // results in undefined
+    console.log(y); // Reference error: y is not defined
+
+    var x = "var1";
+    let y = "var2";
+    let y = 'change var 2' <-- this will result in TypeError
+
+let
+*let is now the preferred way to declare a variable in JS
+The let statement declares a block scope local variable, optionally initializing it to a value. — MDN
+Let’s take a step back on this one. What is block scope?!? JS doesn’t have block scope!
+
+That was true. Up until ES6, we’ve only had function scope. They key difference here is that in function scope, in this case a variable declared in a function with var, may it be in a for loop, while loop, if statement, etc.. , is available anywhere in that function:
+function() {
+  for(var i = 0; i < 5; i++) {
+    console.log(i) //logs 0, 1, 2, 3, 4
+  }
+  console.log(i) //logs 5
+}
+In block scope with let, anything created inside of a block of curly braces becomes restricted to that block of scope:
+
+function() {
+  for(var i = 0; i < 5; i++) {
+    console.log(i) //logs 0, 1, 2, 3, 4
+  }
+  console.log(i) //logs ReferenceError: i is not defined
+}
+This is huge! Each reference to i is it’s own instance of i. That solves a multitude of asynchronous problems developers deal with everyday.
+const
+
+*const bindings are immutable, but object values can be changed
+
+const has many of the same properties of block scope, and hoisting rules as let. Variables declared with const that are initialized to primitive values are immutable. If you take a quick look at a snippet of const in action:
+(function() {
+ const x = 0;
+ let x = 9; // throws SyntaxError: Identifier 'x' has already been
+            // declared
+ const x = 9;//x will still be 0 at this point
+})();
+const is trying to get you into the habit of not mutating data. Once const is set, it cannot change, attempts to change it will fail and the value will remain as the initialized value. const also requires an initializer:
+
+const FOO; // SyntaxError: missing = in const declaration
+Somewhat of a caveat to this, is that const can initialize an object, but the contents of that object cant still be mutated:
+const MY_OBJECT = {"key": "value"};
+
+MY_OBJECT = {"OTHER_KEY": "value"}; //overwrite will fail with
+                                    //TypeError: Assignment to
+                                    //constant variable.
+
+MY_OBJECT.key = "otherValue"; //works
+In other ES6 feature news:
+
+Some stuff I wanted to touch on, but not spend too much time on:
+Destructuring is cool because you can access values in objects and arrays with a ‘map’ to the value, helps make accessing nested data a little easier.
+A handy new feature, is that when passing key values to objects, they can be expressions(yay!):
+obj[3 + 2] = ‘cool’;
+In my last article on ES6 later this week I will get to my two favorite features, and I might throw in another semi relevant Arrow joke cause… Arrow functions and maybe a Generator joke if it turns my crank *wink wink*. -Mick
+P.S.
+BIG UPS TO:
+Horizon.js (I’m currently experimenting with https://horizon.io/, https://github.com/mickberber/horizonApp)
+AND THE AWESOME PODCAST:
+JavaScript Jabber (Great for walking the dog and consuming knowledge https://devchat.tv/js-jabber)
