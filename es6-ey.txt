@@ -1,0 +1,133 @@
+
+Generators and Arrow (we out here tryn’ ta)- functions
+Getting ES6-ey with it (Part 3)
+
+take my code to west coast customs X
+Generators
+If you’ve ever taken a glance at the Python programming language, you may have seen something called a generator function. A quick google and I came across a Stack overflow post. The check marked response states:
+`A generator is simply a function which returns an object on which you can call next, such that for every call it returns some value.`
+So knowing this, and knowing that ES6 has introduced a feature called generators, we can deduce that Javascript is introducing something very similar (Or someone is playing a very mean trick where black is white and up is down). Let’s get a feel for how these work:
+Generators are functions which can be exited and later re-entered. Their context (variable bindings) will be saved across re-entrances.
+- MDN
+function* name(params) {
+  /* logic here */
+}
+A generator is signaled to the programmer by the * character in a function expression (Fun fact, it can take up to 255 arguments). As the definition from MDN explains, they can be exited and their execution context can be revisited. This is very interesting to think about. The execution is not entered into the event loop like async operations are, and they are not part of the normal synchronous actions of the JavaScript compiler. In a sense, the function is tabled, waiting to be called upon with the next version that it was created with.
+A generator function doesn’t immediately yield values. This is a very important term here as generators do not use the return statement, they use a yield keyword instead(I tend to think of it as a ‘soft return’ where a value is generated, but the function has not ended and something more that a side effect has been produced). Generators will initially return an iterator object with a next method that will yield values. As long as the generator has values to yield or expressions to evaluate the next method will return them in a property called value. Ex:
+function* test(){
+  var index = 0;
+  while(index < 3)
+    yield index++;
+}
+
+var example = test();
+
+console.log(example.next().value);
+// Logs 0
+console.log(example.next().value);
+// Logs 1
+console.log(example.next().value);
+// Logs 2
+If there are no values left to yield, the generator will return undefined:
+console.log(example.next().value);
+// Logs undefined
+A generator will also always have a next().done property. This will always be a boolean, and will be set to true on the last instance of that generator yielding a value.
+Functions can be yielded as well, meaning in that case the next method would take an argument:
+function* logGenerator() {
+  console.log(yield);
+  console.log(yield);
+  console.log(yield);
+}
+
+var gen = logGenerator();
+
+// the first call of next executes from the start of the function
+// until the first yield statement
+gen.next();
+gen.next('pretzel'); // pretzel
+gen.next('california'); // california
+gen.next('mayonnaise'); // mayonnaise
+-MDN
+Breathe, its a lot. But, it makes sense if you think about it. In addition to all of these great features a generator can also yield another generator. It’s similar to the call stack we are used to. Functions executing on the stack must be returned in the order when the were called. In these instances, the generator will be ‘tabled’, the other one runs until its yield values have been exhausted, and the original generator resumes yielding:
+function* anotherGenerator(i) {
+  yield i + 1;
+  yield i + 2;
+  yield i + 3;
+}
+
+function* generator(i){
+  yield i;
+  yield* anotherGenerator(i);
+  yield i + 10;
+}
+
+var gen = generator(10);
+
+console.log(gen.next().value); // 10
+console.log(gen.next().value); // 11
+console.log(gen.next().value); // 12
+console.log(gen.next().value); // 13
+console.log(gen.next().value); // 20
+-MDN
+Arrow Functions
+
+still better than hawkeye
+Arrow functions are pretty. They are a minimalistic way of representing a function declaration.
+Consider this:
+var fn = x => x * x;
+Above we a defining the variable fn. fn is equal to an arrow function, that takes x as a parameter. (When only one parameter is being passed braces are optional)
+Below is exactly the same:
+var fn = (x) => x * x;
+At the end of this satement, we see:
+=> x * x;
+This is a ‘fat arrow’ and it means return, with less writing. And less writing rocks, more productivity!
+Arrow functions can also be structured annonymously:
+( /* params */ ) => { /* logic */ };
+//NOTE: A function with no parameters requires parentheses:
+() => { statements }
+this?
+Arrow functions also bind their this value to the lexical scope they are created in. This means that it solves the problem of having to manually bind it later on when we want to do things like setTimeouts:
+//This turns into...
+function Person() {
+  var self = this; // Some choose `that` instead of `self`.
+                   // Choose one and be consistent.
+  self.age = 0;
+
+  setInterval(function growUp() {
+    // The callback refers to the `self` variable of which
+    // the value is the expected object.
+    self.age++;
+  }, 1000);
+}
+-MDN
+//This with an arrow function...
+function Person(){
+  this.age = 0;
+
+  setInterval(() => {
+    this.age++; // |this| properly refers to the person object
+  }, 1000);
+}
+
+var p = new Person();
+A cool little extra feature of ES6:
+The default parameter. Normally, if you have an argument passed, and need that to have a value, you’d use an if statement:
+if(arg[0] === undefined) {
+  arg[0] = 'value';
+}
+//or maybe something like this
+obj = obj || {};
+Now this can be done inline in a function expression:
+function defaultParam(b = 0) {
+  console.log(b);
+}
+defaultParam();
+//logs 0
+defaultParam('arg');
+//logs arg
+*hillbilly voice* Thats some clean code right there uh huh.
+I hope these three articles gave a solid insight to some of the more prominent ES6 features that are now quickly becoming industry standard best practices. Any feedback is greatly appreciated(gottta stay humble!)
+-Mick
+fin séries.
+
+JavaScriptEs6Generators
